@@ -1,4 +1,5 @@
 import {diffChars,diffWordsWithSpace,diffSentences} from 'diff';
+import {getLang,t} from './i18n.js';
 
 const normalize=text=>text.replace(/\s+/g,' ').trim();
 function terms(text){return new Set((text.slice(0,6000).toLocaleLowerCase().match(/[\p{L}\p{N}_]+/gu)||[]).slice(0,500));}
@@ -34,7 +35,7 @@ function paragraphPairs(a,b){
  return result;
 }
 export function buildTextComparison(left,right,level='words'){
- if(left.length+right.length>40000||left.reduce((n,x)=>n+x.length,0)+right.reduce((n,x)=>n+x.length,0)>4000000)throw new Error('Textvergleich auf insgesamt 40.000 Textblöcke und 4 Millionen Zeichen begrenzt.');
+ if(left.length+right.length>40000||left.reduce((n,x)=>n+x.length,0)+right.reduce((n,x)=>n+x.length,0)>4000000)throw new Error(t(getLang(),'cmpTextLimitErr'));
  const a=left.map(normalize),b=right.map(normalize),pairs=paragraphPairs(a,b);
  const result={left:left.map(()=>[]),right:right.map(()=>[]),changes:[],coarseBlocks:0,matches:pairs.map(([l,r])=>({left:l,right:r,kind:l===null||r===null?'only':a[l]===b[r]?'equal':similarity(a[l],b[r])>=.3?'similar':'different'}))};const started=Date.now();
  for(const [l,r] of pairs){
@@ -75,7 +76,7 @@ export function markTextBlocks(blocks,ranges,side,relations=false){
   for(const range of ranges[index]||[]){if(range.end<=start||range.start>=end)continue;if(!perNode.has(node))perNode.set(node,[]);perNode.get(node).push({start:Math.max(0,range.start-start),end:Math.min(node.textContent.length,range.end-start),id:range.id,kind:range.kind,label:range.label,first:range.start>=start&&range.start<end});}
  }});
  for(const [node,segments] of perNode){const text=node.textContent,fragment=node.ownerDocument.createDocumentFragment();let cursor=0;
-  for(const range of segments.sort((a,b)=>a.start-b.start)){if(range.start>cursor)fragment.append(node.ownerDocument.createTextNode(text.slice(cursor,range.start)));const mark=node.ownerDocument.createElement('mark');if(relations){mark.className='text-relation relation-'+range.kind;mark.dataset.textRelation=String(range.id);if(range.first)mark.dataset.label=range.label;}else{mark.className='text-change '+(side==='left'?'text-removed':'text-added');mark.dataset.textChange=String(range.id);}mark.textContent=text.slice(range.start,range.end);mark.title=side==='left'?'Text nur hier bzw. geändert':'Neuer bzw. geänderter Text';fragment.append(mark);cursor=range.end;}
+  for(const range of segments.sort((a,b)=>a.start-b.start)){if(range.start>cursor)fragment.append(node.ownerDocument.createTextNode(text.slice(cursor,range.start)));const mark=node.ownerDocument.createElement('mark');if(relations){mark.className='text-relation relation-'+range.kind;mark.dataset.textRelation=String(range.id);if(range.first)mark.dataset.label=range.label;}else{mark.className='text-change '+(side==='left'?'text-removed':'text-added');mark.dataset.textChange=String(range.id);}mark.textContent=text.slice(range.start,range.end);mark.title=t(getLang(),side==='left'?'cmpMarkLeft':'cmpMarkRight');fragment.append(mark);cursor=range.end;}
   if(cursor<text.length)fragment.append(node.ownerDocument.createTextNode(text.slice(cursor)));node.replaceWith(fragment);
  }
 }

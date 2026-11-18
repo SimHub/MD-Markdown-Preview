@@ -98,7 +98,71 @@ const translations = {
     compareEmptyTitle: 'Dateien vergleichen, Änderungen prüfen und kommentieren.',
     compareEmptySub: 'Markdown, TXT und UTF-8-Codedateien. Grün = hinzugefügt, Rot = entfernt. Dateien bleiben unverändert.',
     compareFooter: 'Review-Notizen werden lokal für genau diese Dateiversionen gespeichert (zuletzt 20 Reviews). Neu vergleichen lädt beide Dateien erneut ein.',
-    dropOverlay: 'Dateien hier ablegen'
+    dropOverlay: 'Dateien hier ablegen',
+    tipFindOpen: 'Im Dokument suchen (⌘F)',
+    searchPlaceholder: 'Im Dokument suchen …',
+    tipSearchPrev: 'Vorheriger Treffer (⇧Enter)',
+    tipSearchNext: 'Nächster Treffer (Enter)',
+    tipSearchClose: 'Suche schließen (Esc)',
+    searchScopeCurrent: 'Dokument',
+    searchScopeAll: 'Alle Dateien',
+    searchAllPlaceholder: 'Dateinamen & offene Dateien durchsuchen …',
+    searchFilesSection: 'DATEINAMEN',
+    searchContentSection: 'TREFFER IN OFFENEN DATEIEN',
+    searchNoGlobalResults: 'Keine passenden Dateinamen oder Textstellen gefunden.',
+    searchBadgeOpen: 'Geöffnet',
+    searchBadgeBookmark: 'Lesezeichen',
+    searchBadgeHistory: 'Verlauf',
+    searchLine: n => `Zeile ${n}`,
+    errReloadDesktop: 'Neu laden ist in der Desktop-App verfügbar.',
+    errPdfDesktop: 'PDF-Export ist in der Desktop-App verfügbar.',
+    welcomeName: 'Willkommen.md',
+
+    cmpPatchFail: 'Die Dateien unterscheiden sich zu stark für den schnellen Vergleich. Bitte kleinere Dateien oder Abschnitte wählen.',
+    cmpTooManyLines: 'Zu viele geänderte Zeilen für diese Ansicht. Bitte kleinere Dateien vergleichen.',
+    cmpReadingTitle: 'Zwei Dateien lesen',
+    cmpReadingReload: '↻ Neu laden',
+    cmpReadingFooter: 'Beide Dokumente sind vollständig und unabhängig scrollbar. Markdown wird formatiert; Text und Code erscheinen als Klartext. Neu laden liest beide Dateien erneut ein.',
+    cmpReadingSummary: 'Zwei vollständige Dateien · unabhängig scrollbar',
+    cmpSessionRestored: 'Letzte Sitzung wiederhergestellt',
+    cmpSessionRestoring: 'Letzte Sitzung wird wiederhergestellt …',
+    cmpSessionCleared: 'Letzte Sitzung gelöscht.',
+    cmpTextOff: 'Textvergleich ist ausgeschaltet. Wörter, Zeichen, Sätze oder Absätze wählen und auf Vergleichen klicken.',
+    cmpNoTextFound: 'In diesen Dateien wurden keine auswertbaren Textstellen gefunden.',
+    cmpRelEqual: 'Gleich',
+    cmpRelSimilar: 'Ähnlich',
+    cmpRelDifferent: 'Unterschiedlich',
+    cmpRelOnly: 'Nur hier',
+    cmpJumpTitle: 'Klicken: Gegenstelle in der anderen Datei anzeigen',
+    cmpNoCounterpartTitle: 'Diese Stelle hat keine zugeordnete Gegenstelle.',
+    cmpJumpAria: avail => avail ? ': Gegenstelle in der anderen Datei anzeigen' : ': keine Gegenstelle in der anderen Datei',
+    cmpReadingLeft: 'Links',
+    cmpReadingRight: 'Rechts',
+    cmpReadingTop: 'Oben',
+    cmpReadingBottom: 'Unten',
+    cmpDiffBefore: 'Vorher',
+    cmpDiffAfter: 'Nachher',
+    cmpSelectSide: label => `${label} auswählen …`,
+    cmpDropHint: path => `${path || 'Datei auswählen'} · Einzelne Datei hier hineinziehen`,
+    cmpLoadingFiles: 'Dateien werden eingelesen …',
+    cmpNewSelection: 'Neue Dateiauswahl',
+    cmpNoComparison: 'Kein aktueller Vergleich. Bitte beide Dateien erneut einlesen.',
+    cmpLimited: 'Vergleich begrenzt',
+    cmpReviewRestored: 'Review wiederhergestellt',
+    cmpDiffSummary: (hunks, added, removed) => `${hunks} Änderungsblöcke · +${added} −${removed} Zeilen`,
+    cmpNoChanges: 'Keine Änderungen zwischen beiden Dateien gefunden.',
+    cmpReviewed: 'Geprüft',
+    cmpReviewNoteLabel: n => `Review-Notiz zu Änderung ${n}`,
+    cmpReviewPlaceholder: 'Beobachtung, Frage oder Verbesserungsvorschlag …',
+    cmpTextMsgDone: (level, eq, sim, diff, only) => `Textvergleich (${level}): ${eq} gleich, ${sim} ähnlich, ${diff} unterschiedlich, ${only} nur einseitig — Vergleich abgeschlossen.`,
+    cmpTextSummary: (eq, sim, diff, only) => `${eq} gleich · ${sim} ähnlich · ${diff} unterschiedlich · ${only} nur hier`,
+    cmpNoChangesFound: 'Keine Unterschiede im Text gefunden.',
+    cmpNoLines: 'keine Zeilen',
+    cmpTextLimitErr: 'Textvergleich auf insgesamt 40.000 Textblöcke und 4 Millionen Zeichen begrenzt.',
+    cmpMarkLeft: 'Text nur hier bzw. geändert',
+    cmpMarkRight: 'Neuer bzw. geänderter Text',
+    cmpMissingCounterpart: 'Für diese Stelle gibt es keine Gegenstelle in der anderen Datei.',
+    cmpPartialHint: 'Zweite Datei auswählen oder hineinziehen, um beide Dokumente zu vergleichen.'
   },
   en: {
     openFilesBtn: '＋ Open Files',
@@ -199,9 +263,77 @@ const translations = {
     compareEmptyTitle: 'Compare files, review changes, and add notes.',
     compareEmptySub: 'Markdown, TXT, and UTF-8 code files. Green = added, red = removed. Files remain unchanged.',
     compareFooter: 'Review notes are stored locally for these exact file versions (last 20 reviews). Recompare reloads both files from disk.',
-    dropOverlay: 'Drop files here'
+    dropOverlay: 'Drop files here',
+    tipFindOpen: 'Find in document (⌘F)',
+    searchPlaceholder: 'Find in document …',
+    tipSearchPrev: 'Previous match (⇧Enter)',
+    tipSearchNext: 'Next match (Enter)',
+    tipSearchClose: 'Close search (Esc)',
+    searchScopeCurrent: 'Document',
+    searchScopeAll: 'All Files',
+    searchAllPlaceholder: 'Search filenames & open files …',
+    searchFilesSection: 'FILENAMES',
+    searchContentSection: 'MATCHES IN OPEN FILES',
+    searchNoGlobalResults: 'No matching filenames or text found.',
+    searchBadgeOpen: 'Open',
+    searchBadgeBookmark: 'Bookmark',
+    searchBadgeHistory: 'History',
+    searchLine: n => `Line ${n}`,
+    errReloadDesktop: 'Reloading is only available in the desktop app.',
+    errPdfDesktop: 'PDF export is only available in the desktop app.',
+    welcomeName: 'Welcome.md',
+
+    cmpPatchFail: 'The files differ too much for a fast diff. Please select smaller files or sections.',
+    cmpTooManyLines: 'Too many changed lines for this view. Please compare smaller files.',
+    cmpReadingTitle: 'Read Two Files',
+    cmpReadingReload: '↻ Reload',
+    cmpReadingFooter: 'Both documents are complete and scroll independently. Markdown is formatted; plain text and code appear as source. Reload reads both files again from disk.',
+    cmpReadingSummary: 'Two full files · independent scrolling',
+    cmpSessionRestored: 'Last session restored',
+    cmpSessionRestoring: 'Restoring last session …',
+    cmpSessionCleared: 'Last session cleared.',
+    cmpTextOff: 'Text comparison is off. Choose Words, Characters, Sentences, or Paragraphs and click Compare.',
+    cmpNoTextFound: 'No comparable text blocks found in these files.',
+    cmpRelEqual: 'Equal',
+    cmpRelSimilar: 'Similar',
+    cmpRelDifferent: 'Different',
+    cmpRelOnly: 'Only here',
+    cmpJumpTitle: 'Click: jump to counterpart in the other file',
+    cmpNoCounterpartTitle: 'This passage has no matching counterpart.',
+    cmpJumpAria: avail => avail ? ': jump to counterpart in the other file' : ': no counterpart in the other file',
+    cmpReadingLeft: 'Left',
+    cmpReadingRight: 'Right',
+    cmpReadingTop: 'Top',
+    cmpReadingBottom: 'Bottom',
+    cmpDiffBefore: 'Before',
+    cmpDiffAfter: 'After',
+    cmpSelectSide: label => `Select ${label.toLowerCase()} …`,
+    cmpDropHint: path => `${path || 'Select file'} · Drop a single file here`,
+    cmpLoadingFiles: 'Loading files …',
+    cmpNewSelection: 'New file selection',
+    cmpNoComparison: 'No active comparison. Please reload both files.',
+    cmpLimited: 'Comparison limited',
+    cmpReviewRestored: 'Review restored',
+    cmpDiffSummary: (hunks, added, removed) => `${hunks} hunks · +${added} −${removed} lines`,
+    cmpNoChanges: 'No changes found between the two files.',
+    cmpReviewed: 'Reviewed',
+    cmpReviewNoteLabel: n => `Review note for change ${n}`,
+    cmpReviewPlaceholder: 'Observation, question, or suggestion …',
+    cmpTextMsgDone: (level, eq, sim, diff, only) => `Text comparison (${level}): ${eq} equal, ${sim} similar, ${diff} different, ${only} one-sided — comparison complete.`,
+    cmpTextSummary: (eq, sim, diff, only) => `${eq} equal · ${sim} similar · ${diff} different · ${only} only here`,
+    cmpNoChangesFound: 'No text differences found.',
+    cmpNoLines: 'no lines',
+    cmpTextLimitErr: 'Text comparison is limited to 40,000 text blocks and 4 million characters total.',
+    cmpMarkLeft: 'Text only here or changed',
+    cmpMarkRight: 'Added or changed text',
+    cmpMissingCounterpart: 'There is no counterpart for this passage in the other file.',
+    cmpPartialHint: 'Select or drop a second file to compare both documents.'
   }
 };
+
+export function getLang() {
+  return typeof document !== 'undefined' && document.documentElement?.lang === 'en' ? 'en' : 'de';
+}
 
 export function getStoredLang() {
   try {
@@ -330,4 +462,17 @@ export function applyLanguageToDOM(doc, lang) {
 
   const drop = doc.querySelector('#drop-overlay');
   if (drop && drop.firstChild) drop.firstChild.textContent = dict.dropOverlay;
+
+  // Search bar
+  setTipSel('#find-open', dict.tipFindOpen);
+  setText('#search-scope [data-scope="current"]', dict.searchScopeCurrent);
+  setText('#search-scope [data-scope="all"]', dict.searchScopeAll);
+  const searchInput = doc.querySelector('#search-input');
+  if (searchInput) {
+    const isAll = doc.querySelector('#search-scope [data-scope="all"]')?.classList.contains('active');
+    searchInput.placeholder = isAll ? dict.searchAllPlaceholder : dict.searchPlaceholder;
+  }
+  setTipSel('#search-prev', dict.tipSearchPrev);
+  setTipSel('#search-next', dict.tipSearchNext);
+  setTipSel('#search-close', dict.tipSearchClose);
 }

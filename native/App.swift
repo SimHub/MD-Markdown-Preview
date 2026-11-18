@@ -331,6 +331,49 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         guard let data = try? JSONEncoder().encode(payload), let json = String(data: data, encoding: .utf8) else { return }
         web.evaluateJavaScript("window.updateLibrary(\(json))")
     }
+    struct SearchMatch: Encodable {
+        let path: String
+        let name: String
+        let line: Int
+        let snippet: String
+    }
+    func searchOpenDocuments(query: String) {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            web.evaluateJavaScript("window.showGlobalSearchResults([])")
+            return
+        }
+        let urls = openDocuments
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            var matches: [SearchMatch] = []
+            for url in urls {
+                guard matches.count < 100 else { break }
+                guard let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+                      let size = attrs[.size] as? NSNumber, size.int64Value <= 20_000_000,
+                      let content = try? String(contentsOf: url, encoding: .utf8) else { continue }
+                var fileMatches = 0
+                var lineNum = 0
+                content.enumerateLines { line, stop in
+                    lineNum += 1
+                    if let range = line.range(of: trimmed, options: .caseInsensitive) {
+                        let startIdx = line.index(range.lowerBound, offsetBy: -40, limitedBy: line.startIndex) ?? line.startIndex
+                        let endIdx = line.index(range.upperBound, offsetBy: 80, limitedBy: line.endIndex) ?? line.endIndex
+                        let prefix = startIdx > line.startIndex ? "…" : ""
+                        let suffix = endIdx < line.endIndex ? "…" : ""
+                        let snippet = prefix + line[startIdx..<endIdx].trimmingCharacters(in: .whitespaces) + suffix
+                        matches.append(SearchMatch(path: url.path, name: url.lastPathComponent, line: lineNum, snippet: snippet))
+                        fileMatches += 1
+                        if fileMatches >= 10 || matches.count >= 100 { stop = true }
+                    }
+                }
+            }
+            guard let data = try? JSONEncoder().encode(matches),
+                  let json = String(data: data, encoding: .utf8) else { return }
+            DispatchQueue.main.async {
+                self?.web.evaluateJavaScript("window.showGlobalSearchResults(\(json))")
+            }
+        }
+    }
     func userContentController(_ controller: WKUserContentController,didReceive message: WKScriptMessage) {
         guard message.frameInfo.isMainFrame, let body = message.body as? [String:Any], let action = body["action"] as? String else { return }
         switch action {
@@ -369,6 +412,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             if let paths = body["paths"] as? [String], let combined = body["combined"] as? Bool { beginBatchExport(paths: paths, combined: combined) }
         case "openDocument":
             if let path = body["path"] as? String, openDocuments.contains(where: { $0.path == path }) { load(URL(fileURLWithPath: path)) }
+        case "searchOpenDocuments":
+            if let query = body["query"] as? String { searchOpenDocuments(query: query) }
         case "closeDocument":
             if !exporting, let path = body["path"] as? String {
                 openDocuments.removeAll { $0.path == path }

@@ -1,10 +1,12 @@
 import {buildTextComparison,textBlocks,clearTextMarks,markTextBlocks} from './text-comparison.js';
+import {getLang,t} from './i18n.js';
 import {structuredPatch} from 'diff';
 
 export function buildComparison(oldText,newText){
- const patch=structuredPatch('Vorher','Nachher',oldText,newText,'','',{context:3,timeout:1200,maxEditLength:5000});
- if(!patch)throw new Error('Die Dateien unterscheiden sich zu stark für den schnellen Vergleich. Bitte kleinere Dateien oder Abschnitte wählen.');
- if(patch.hunks.reduce((n,h)=>n+h.lines.length,0)>12000)throw new Error('Zu viele geänderte Zeilen für diese Ansicht. Bitte kleinere Dateien vergleichen.');
+ const lang=getLang();
+ const patch=structuredPatch(t(lang,'cmpDiffBefore'),t(lang,'cmpDiffAfter'),oldText,newText,'','',{context:3,timeout:1200,maxEditLength:5000});
+ if(!patch)throw new Error(t(lang,'cmpPatchFail'));
+ if(patch.hunks.reduce((n,h)=>n+h.lines.length,0)>12000)throw new Error(t(lang,'cmpTooManyLines'));
  return patch;
 }
 function element(tag,className,text){const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;}
@@ -32,47 +34,48 @@ export function initComparison({native,flushPosition,renderReadingDocument}){
    function restoreScroll(){for(const side of ['left','right']){const pane=$('#dual-scroll-'+side);if(pane)pane.scrollTop=side==='left'?session.leftScroll:session.rightScroll;}content.scrollTop=session.diffScroll;}
    restoreScroll();selectedHunk=Math.max(0,Math.min(session.selectedHunk,(patch?.hunks.length||1)-1));textIndex=Math.max(-1,Math.min(session.textIndex,(textResult?.changes.length||0)-1));
    content.querySelectorAll('img').forEach(image=>{if(!image.complete)image.addEventListener('load',()=>{if(epoch===restoreEpoch&&!userMoved)restoreScroll();},{once:true});});
-   pendingSession=null;restoringSession=false;sessionError=false;$('#text-compare-message').title='Letzte Sitzung wiederhergestellt';
+   pendingSession=null;restoringSession=false;sessionError=false;$('#text-compare-message').title=t(getLang(),'cmpSessionRestored');
   }
   scheduleSession();
  }
- window.prepareComparisonSession=session=>{clearTimeout(sessionTimer);pendingSession=session;restoringSession=true;sessionEnabled=true;sessionError=false;restoreEpoch++;userMoved=false;payload=null;patch=null;textResult=null;textGroups=null;selectedFiles={left:session.left,right:session.right};readingPositions={left:session.leftScroll,right:session.rightScroll};lastMode=session.mode;$('#compare-view').value=session.mode;$('#text-compare-level').value=session.textLevel;window.openComparison();content.replaceChildren(element('div','compare-empty','Letzte Sitzung wird wiederhergestellt …'));modeUI();};
- window.resetComparisonSession=()=>{clearTimeout(sessionTimer);pendingSession=null;restoringSession=false;sessionError=false;sessionEnabled=false;restoreEpoch++;payload=null;patch=null;textResult=null;textGroups=null;notes={comments:{},reviewed:[]};dirty=false;selectedFiles={left:'',right:''};readingPositions={left:0,right:0};selectedHunk=0;textIndex=-1;content.replaceChildren();paths(selectedFiles);$('#text-compare-message').textContent='Letzte Sitzung gelöscht.';};
+ window.prepareComparisonSession=session=>{clearTimeout(sessionTimer);pendingSession=session;restoringSession=true;sessionEnabled=true;sessionError=false;restoreEpoch++;userMoved=false;payload=null;patch=null;textResult=null;textGroups=null;selectedFiles={left:session.left,right:session.right};readingPositions={left:session.leftScroll,right:session.rightScroll};lastMode=session.mode;$('#compare-view').value=session.mode;$('#text-compare-level').value=session.textLevel;window.openComparison();content.replaceChildren(element('div','compare-empty',t(getLang(),'cmpSessionRestoring')));modeUI();};
+ window.resetComparisonSession=()=>{clearTimeout(sessionTimer);pendingSession=null;restoringSession=false;sessionError=false;sessionEnabled=false;restoreEpoch++;payload=null;patch=null;textResult=null;textGroups=null;notes={comments:{},reviewed:[]};dirty=false;selectedFiles={left:'',right:''};readingPositions={left:0,right:0};selectedHunk=0;textIndex=-1;content.replaceChildren();paths(selectedFiles);$('#text-compare-message').textContent=t(getLang(),'cmpSessionCleared');};
  content.addEventListener('scroll',()=>scheduleSession(),true);
  for(const event of ['wheel','pointerdown','keydown'])content.addEventListener(event,()=>{userMoved=true;},{passive:true});
  $('#session-clear').onclick=()=>{window.flushReview();clearTimeout(sessionTimer);sessionEnabled=false;native('clearComparisonSession',{area:reading()?'reading':'diff'});};
  const complete=()=>!!(payload?.left&&payload?.right);
  const reading=()=>$('#compare-view').value.startsWith('documents-');
  function captureReading(){for(const side of ['left','right']){const scroll=$('#dual-scroll-'+side);if(scroll)readingPositions[side]=scroll.scrollTop;}}
- function modeUI(){const isReading=reading();$('#comparison').classList.toggle('reading-mode',isReading);$('#text-compare-controls').hidden=!isReading;$('#text-compare-level').disabled=!complete();$('#text-compare-run').disabled=!complete();$('#text-compare-message').hidden=!isReading||!complete();$('#comparison').classList.toggle('partial-mode',!!payload&&!complete());$('#comparison-title').textContent=isReading?'Zwei Dateien lesen':'Vergleich & Review';$('#compare-reload').textContent=isReading?'↻ Neu laden':'↻ Neu vergleichen';$('#comparison-footer').textContent=isReading?'Beide Dokumente sind vollständig und unabhängig scrollbar. Markdown wird formatiert; Text und Code erscheinen als Klartext. Neu laden liest beide Dateien erneut ein.':reviewFooter;$('#dual-open').setAttribute('aria-pressed',String(isReading&&!$('#comparison').hidden));$('#compare-open').setAttribute('aria-pressed',String(!isReading&&!$('#comparison').hidden));}
+ function modeUI(){const lang=getLang(),isReading=reading();$('#comparison').classList.toggle('reading-mode',isReading);$('#text-compare-controls').hidden=!isReading;$('#text-compare-level').disabled=!complete();$('#text-compare-run').disabled=!complete();$('#text-compare-message').hidden=!isReading||!complete();$('#comparison').classList.toggle('partial-mode',!!payload&&!complete());$('#comparison-title').textContent=t(lang,isReading?'cmpReadingTitle':'compareTitle');$('#compare-reload').textContent=t(lang,isReading?'cmpReadingReload':'compareReload');$('#comparison-footer').textContent=t(lang,isReading?'cmpReadingFooter':'compareFooter');$('#dual-open').setAttribute('aria-pressed',String(isReading&&!$('#comparison').hidden));$('#compare-open').setAttribute('aria-pressed',String(!isReading&&!$('#comparison').hidden));}
  function highlightText(){
-  textResult=null;textGroups=null;textIndex=-1;$('#comparison').classList.remove('text-comparing');modeUI();if(reading()&&complete()){$('#compare-summary').textContent='Zwei vollständige Dateien · unabhängig scrollbar';$('#compare-prev').disabled=$('#compare-next').disabled=true;}
+  const lang=getLang();
+  textResult=null;textGroups=null;textIndex=-1;$('#comparison').classList.remove('text-comparing');modeUI();if(reading()&&complete()){$('#compare-summary').textContent=t(lang,'cmpReadingSummary');$('#compare-prev').disabled=$('#compare-next').disabled=true;}
   const left=$('#dual-scroll-left article'),right=$('#dual-scroll-right article');
   if(left)clearTextMarks(left);if(right)clearTextMarks(right);
   if(!reading()||!complete()||!left||!right)return;
   const message=$('#text-compare-message');message.classList.remove('comparison-problem');
-  if($('#text-compare-level').value==='off'){message.textContent='Textvergleich ist ausgeschaltet. Wörter, Zeichen, Sätze oder Absätze wählen und auf Vergleichen klicken.';return;}
+  if($('#text-compare-level').value==='off'){message.textContent=t(lang,'cmpTextOff');return;}
   try{
    const groups={left:textBlocks(left),right:textBlocks(right)};
-   if(!groups.left.length&&!groups.right.length)throw new Error('In diesen Dateien wurden keine auswertbaren Textstellen gefunden.');
+   if(!groups.left.length&&!groups.right.length)throw new Error(t(lang,'cmpNoTextFound'));
    const result=buildTextComparison(groups.left.map(b=>b.text),groups.right.map(b=>b.text),$('#text-compare-level').value);
    const relations={left:groups.left.map(()=>[]),right:groups.right.map(()=>[])};
-   const names={equal:'Gleich',similar:'Ähnlich',different:'Unterschiedlich',only:'Nur hier'};
+   const names={equal:t(lang,'cmpRelEqual'),similar:t(lang,'cmpRelSimilar'),different:t(lang,'cmpRelDifferent'),only:t(lang,'cmpRelOnly')};
    result.matches.forEach((match,index)=>{for(const side of ['left','right']){const block=match[side];if(block!==null)relations[side][block].push({start:0,end:groups[side][block].text.length,id:index,kind:match.kind,label:`${names[match.kind]} · ${index+1}`});}});
    markTextBlocks(groups.left,relations.left,'left',true);markTextBlocks(groups.right,relations.right,'right',true);
    const markedGroups={left:textBlocks(left),right:textBlocks(right)};
    markTextBlocks(markedGroups.left,result.left,'left');markTextBlocks(markedGroups.right,result.right,'right');textResult=result;textGroups=markedGroups;
    for(const side of ['left','right'])for(const badge of $('#dual-scroll-'+side).querySelectorAll('mark[data-text-relation][data-label]')){
     const match=result.matches[Number(badge.dataset.textRelation)],other=side==='left'?'right':'left',available=match?.[other]!==null;
-    badge.tabIndex=0;badge.setAttribute('role','button');badge.setAttribute('aria-label',badge.dataset.label+(available?': Gegenstelle in der anderen Datei anzeigen':': keine Gegenstelle in der anderen Datei'));
-    badge.title=available?'Klicken: Gegenstelle in der anderen Datei anzeigen':'Diese Stelle hat keine zugeordnete Gegenstelle.';
+    badge.tabIndex=0;badge.setAttribute('role','button');badge.setAttribute('aria-label',badge.dataset.label+t(lang,'cmpJumpAria',available));
+    badge.title=t(lang,available?'cmpJumpTitle':'cmpNoCounterpartTitle');
    }
    $('#comparison').classList.add('text-comparing');$('#compare-prev').disabled=$('#compare-next').disabled=!result.changes.length;
    const counts={equal:0,similar:0,different:0,only:0};result.matches.forEach(match=>counts[match.kind]++);
-   message.textContent=`Vergleich abgeschlossen: ${groups.left.length.toLocaleString('de-DE')} Textblöcke links, ${groups.right.length.toLocaleString('de-DE')} rechts.`+(result.coarseBlocks?` ${result.coarseBlocks} umfangreiche Textblöcke werden absatzweise markiert.`:'');
-   $('#compare-summary').textContent=`${counts.equal} gleich · ${counts.similar} ähnlich · ${counts.different} unterschiedlich · ${counts.only} nur einseitig · ${result.changes.length} Textunterschiede`;
-   $('#comparison-footer').textContent='Gleich = gleicher Text · Ähnlich = gemeinsame Wörter mit Änderungen · Unterschiedlich = wenig gemeinsame Wörter · Nur hier = ohne Gegenstück. Gleiche Nummern gehören zusammen. Auf eine Markierung klicken, um die Gegenstelle anzuzeigen. Rot/Grün markiert die konkreten Änderungen. Ähnlichkeit bezieht sich auf den Wortlaut, nicht die Bedeutung.';
-  }catch(error){message.textContent='Textvergleich konnte nicht ausgeführt werden: '+error.message;message.classList.add('comparison-problem');$('#compare-summary').textContent=error.message;}
+   const levelText=$('#text-compare-level').selectedOptions[0]?.textContent||$('#text-compare-level').value;
+   message.textContent=t(lang,'cmpTextMsgDone',levelText,counts.equal,counts.similar,counts.different,counts.only);
+   $('#compare-summary').textContent=t(lang,'cmpTextSummary',counts.equal,counts.similar,counts.different,counts.only)+` · ${result.changes.length}`;
+  }catch(error){message.textContent=error.message;message.classList.add('comparison-problem');$('#compare-summary').textContent=error.message;}
  }
  function jumpToRelation(badge){
   if(!textResult||!reading())return;
@@ -154,25 +157,27 @@ export function initComparison({native,flushPosition,renderReadingDocument}){
    $('#compare-summary').textContent=complete()?'Zwei vollständige Dateien · unabhängig scrollbar':payload.left?'Erste Datei geladen · zweite Datei auswählen oder hineinziehen':payload.right?'Zweite Datei geladen · erste Datei auswählen oder hineinziehen':'Eine oder zwei Dateien auswählen oder hineinziehen';highlightText();finishSessionRender();return;
   }
   if(!patch)return;
-  if(!patch.hunks.length){content.append(element('div','compare-empty','Keine Unterschiede gefunden.'));updateCount();finishSessionRender();return;}
+  const lang=getLang();
+  if(!patch.hunks.length){content.append(element('div','compare-empty',t(lang,'cmpNoChanges')));updateCount();finishSessionRender();return;}
   patch.hunks.forEach((hunk,index)=>{
-   const rangeText=(start,count)=>count===0?'keine Zeilen':count===1?String(start):`${start}–${start+count-1}`;
+   const rangeText=(start,count)=>count===0?t(lang,'cmpNoLines'):count===1?String(start):`${start}–${start+count-1}`;
    const id='h'+index,section=element('section','diff-hunk');section.id='diff-hunk-'+index;
-   const header=element('div','diff-hunk-header'),range=element('strong','',`Änderung ${index+1} · Vorher ${rangeText(hunk.oldStart,hunk.oldLines)} / Nachher ${rangeText(hunk.newStart,hunk.newLines)}`);
-   const label=element('label'),checkbox=element('input');checkbox.type='checkbox';checkbox.checked=notes.reviewed.includes(id);checkbox.onchange=()=>{notes.reviewed=notes.reviewed.filter(x=>x!==id);if(checkbox.checked)notes.reviewed.push(id);section.classList.toggle('reviewed',checkbox.checked);save();};label.append(checkbox,document.createTextNode(' Geprüft'));header.append(range,label);section.append(header);
+   const header=element('div','diff-hunk-header'),range=element('strong','',`#${index+1} · ${t(lang,'cmpDiffBefore')} ${rangeText(hunk.oldStart,hunk.oldLines)} / ${t(lang,'cmpDiffAfter')} ${rangeText(hunk.newStart,hunk.newLines)}`);
+   const label=element('label'),checkbox=element('input');checkbox.type='checkbox';checkbox.checked=notes.reviewed.includes(id);checkbox.onchange=()=>{notes.reviewed=notes.reviewed.filter(x=>x!==id);if(checkbox.checked)notes.reviewed.push(id);section.classList.toggle('reviewed',checkbox.checked);save();};label.append(checkbox,document.createTextNode(' '+t(lang,'cmpReviewed')));header.append(range,label);section.append(header);
    section.classList.toggle('reviewed',checkbox.checked);const scroller=element('div','diff-scroll');scroller.append(diffTable(hunk));section.append(scroller);
-   const commentLabel=element('label','review-comment-label',`Review-Notiz zu Änderung ${index+1}`),textarea=element('textarea','review-comment');textarea.rows=2;textarea.maxLength=20000;textarea.placeholder='Beobachtung, Frage oder Verbesserungsvorschlag …';textarea.value=notes.comments[id]||'';textarea.setAttribute('aria-label',commentLabel.textContent);textarea.oninput=()=>{if(textarea.value)notes.comments[id]=textarea.value;else delete notes.comments[id];save();};commentLabel.append(textarea);section.append(commentLabel);content.append(section);
+   const commentLabel=element('label','review-comment-label',t(lang,'cmpReviewNoteLabel',index+1)),textarea=element('textarea','review-comment');textarea.rows=2;textarea.maxLength=20000;textarea.placeholder=t(lang,'cmpReviewPlaceholder');textarea.value=notes.comments[id]||'';textarea.setAttribute('aria-label',commentLabel.textContent);textarea.oninput=()=>{if(textarea.value)notes.comments[id]=textarea.value;else delete notes.comments[id];save();};commentLabel.append(textarea);section.append(commentLabel);content.append(section);
   });updateCount();finishSessionRender();
  }
  function paths(files){
-  selectedFiles=files;
+  selectedFiles=files;const lang=getLang();
   for(const side of ['left','right']){
-   const label=reading()?($('#compare-view').value==='documents-stacked'?(side==='left'?'Oben':'Unten'):(side==='left'?'Links':'Rechts')):(side==='left'?'Vorher':'Nachher');
-   const button=$('#compare-'+side);button.textContent=files[side]?label+': '+files[side].split('/').pop():label+' auswählen …';
-   button.title=(files[side]||'Datei auswählen')+' · Einzelne Datei hier hineinziehen';$('#compare-clear-'+side).disabled=!files[side];
+   const label=reading()?($('#compare-view').value==='documents-stacked'?(side==='left'?t(lang,'cmpReadingTop'):t(lang,'cmpReadingBottom')):(side==='left'?t(lang,'cmpReadingLeft'):t(lang,'cmpReadingRight'))):(side==='left'?t(lang,'cmpDiffBefore'):t(lang,'cmpDiffAfter'));
+   const button=$('#compare-'+side);button.textContent=files[side]?label+': '+files[side].split('/').pop():t(lang,'cmpSelectSide',label);
+   button.title=t(lang,'cmpDropHint',files[side]);$('#compare-clear-'+side).disabled=!files[side];
   }
   $('#compare-reload').disabled=$('#compare-swap').disabled=!(files.left||files.right);
  }
+ window.refreshComparisonLanguage=()=>{modeUI();paths(payload||selectedFiles);if(payload&&!$('#comparison').hidden)render();else if(!payload)$('#compare-summary').textContent=t(getLang(),'compareSummaryDefault');};
  window.setComparisonFiles=files=>{if(pendingSession&&(files.left!==pendingSession.left||files.right!==pendingSession.right)){pendingSession=null;restoringSession=false;sessionError=false;readingPositions={left:0,right:0};restoreEpoch++;}captureReading();if(payload&&(files.left!==payload.left||files.right!==payload.right)){window.flushReview();if(files.left!==payload.left)readingPositions.left=0;if(files.right!==payload.right)readingPositions.right=0;payload=null;patch=null;textResult=null;textGroups=null;$('#comparison').classList.remove('text-comparing');content.replaceChildren(element('div','compare-empty','Dateien werden eingelesen …'));$('#compare-summary').textContent='Neue Dateiauswahl';$('#review-status').textContent='';$('#compare-prev').disabled=$('#compare-next').disabled=$('#review-clear').disabled=true;}paths(files);};
  window.openComparison=()=>{sessionHasWorkspace=true;document.body.classList.remove('focus');document.body.classList.add('comparing');flushPosition();$('#comparison').hidden=false;$('#compare-open').setAttribute('aria-pressed','true');};
  window.comparisonError=message=>{sessionError=true;textResult=null;textGroups=null;$('#comparison').classList.remove('text-comparing');window.flushReview();patch=null;content.replaceChildren(element('div','compare-empty','Kein aktueller Vergleich. Bitte beide Dateien erneut einlesen.'));$('#compare-summary').textContent=message;$('#compare-prev').disabled=$('#compare-next').disabled=$('#review-clear').disabled=true;};

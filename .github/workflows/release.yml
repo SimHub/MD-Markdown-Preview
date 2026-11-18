@@ -1,0 +1,44 @@
+name: Build & Release macOS App
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app bundle
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+      - name: Package zip
+        run: |
+          cd dist
+          ditto -c -k --sequesterRsrc --keepParent "MD Preview.app" "MD-Preview-macOS.zip"
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/MD-Preview-macOS.zip
+          generate_release_notes: true

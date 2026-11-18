@@ -45,7 +45,8 @@ Mehrere Dateien gleichzeitig öffnen: **⌘O** mit Mehrfachauswahl, Drag-and-dro
 - Standardmäßig beim Start das letzte Dokument fortsetzen; unter ⚙ abschaltbar. Explizit per Finder oder Terminal geöffnete Dateien haben Vorrang.
 - „Verlauf löschen“ entfernt auch Lesestellen unmarkierter Dateien und die automatische Startdatei; Lesezeichen und deren Lesestellen bleiben erhalten. Dateien werden nie gelöscht.
 - Fokusmodus; mit Escape zurück.
-- Tabellen, Code mit Syntaxfarben, Listen, Zitate und Bilder.
+- Tabellen, Code mit Syntaxfarben, Listen, Task-Listen (`- [x]`), GitHub-Callouts (`> [!NOTE]`, `> [!WARNING]` usw.), Zitate und Bilder.
+- **Im Dokument suchen (`⌘F` / `⌕`)**: Treffer hervorheben und per `Enter` / `⇧Enter` oder ↑ / ↓ anspringen.
 - **↻ / ⌘R** liest die Datei auch bei unverändertem Text neu und leert den WebKit-Bildcache. Relative Bilder bekommen zusätzlich eine neue Ladeadresse; Lesestelle und Ansicht bleiben erhalten.
 - **↗ Editor / ⌘E** öffnet die aktuelle Datei im bevorzugten Editor. Unter ⚙ stehen VS Code, Neovim/LazyVim und eine frei wählbare Editor-App zur Auswahl.
 - Dateiüberwachung reagiert kurz nach dem Speichern, auch bei atomarem Dateiersatz. Der sekündliche Abgleich bleibt als Rückfall erhalten.
