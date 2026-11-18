@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MD Preview — Native macOS Markdown Reader</title>
+  <meta name="description" content="A fast, native macOS Markdown & plain-text reader built with Swift/AppKit. Zero Electron, side-by-side manuscript diff, local review notes, and batch PDF export.">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --side: #f6f7f9;
+      --ink: #252a34;
+      --muted: #697280;
+      --line: #e8ebef;
+      --accent: #298575;
+      --selected: #e8f3ef;
+      color-scheme: light;
+    }
+    [data-theme="dark"] {
+      --bg: #1b1e24;
+      --side: #171a20;
+      --ink: #dfe4ec;
+      --muted: #98a2b3;
+      --line: #30343e;
+      --accent: #88cdb7;
+      --selected: #233b34;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .topbar {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -1.8px;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 10px;
+      color: var(--ink);
+    }
+    .brand span { color: var(--accent); }
+    .brand small {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0;
+      color: var(--muted);
+    }
+    .controls { display: flex; gap: 8px; align-items: center; }
+    .btn-ghost {
+      border: 1px solid var(--line);
+      background: var(--side);
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 6px 12px;
+      font: 600 12px/1.4 inherit;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { border-color: var(--accent); }
+    main { max-width: 980px; margin: 0 auto; padding: 56px 24px 72px; }
+    .hero { text-align: center; max-width: 700px; margin: 0 auto 56px; }
+    .pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--selected);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+    h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      line-height: 1.12;
+      letter-spacing: -1.5px;
+      margin: 0 0 18px;
+    }
+    .hero p { font-size: 18px; color: var(--muted); margin: 0 0 28px; }
+    .cta { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+      padding: 12px 22px;
+      border-radius: 9px;
+      font-weight: 600;
+      font-size: 15px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    [data-theme="dark"] .btn-primary { color: #11161b; }
+    .btn-primary:hover { text-decoration: none; filter: brightness(1.06); }
+    .btn-secondary {
+      border: 1px solid var(--line);
+      background: var(--side);
+      color: var(--ink);
+      padding: 12px 22px;
+      border-radius: 9px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .btn-secondary:hover { text-decoration: none; border-color: var(--accent); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 18px;
+      margin-bottom: 48px;
+    }
+    .card {
+      background: var(--side);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 22px;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 16px; }
+    .card p { margin: 0; font-size: 14px; color: var(--muted); }
+    .note {
+      background: var(--selected);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 10px 10px 0;
+      padding: 16px 20px;
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+    .note code {
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+    }
+    footer {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">m<span>↓</span> <small>MD Preview</small></div>
+    <div class="controls">
+      <button class="btn-ghost" id="lang-btn" type="button">DE</button>
+      <button class="btn-ghost" id="theme-btn" type="button">◐</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="pill" data-i18n="pill">Native Swift / AppKit · macOS 12+ · Zero Electron</div>
+      <h1 data-i18n="h1">Calm Markdown reading, manuscript diff &amp; batch PDF.</h1>
+      <p data-i18n="sub">A lightweight, 100% local Markdown &amp; plain-text reader for macOS. No bundled browser, no server, no telemetry.</p>
+      <div class="cta">
+        <a class="btn-primary" href="https://github.com/SimHub/MD-Markdown-Preview/releases/latest/download/MD-Preview-macOS.dmg" data-i18n="dl">⬇ Download for macOS (.dmg)</a>
+        <a class="btn-secondary" href="https://github.com/SimHub/MD-Markdown-Preview" data-i18n="gh">View on GitHub</a>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h3 data-i18n="c1t">Calm Reading &amp; Live Reload</h3>
+        <p data-i18n="c1d">Read, Split, and Source views with table of contents, focus mode, GFM alerts, task lists, and instant reload on save.</p>
+      </article>
+      <article class="card">
+        <h3 data-i18n="c2t">Two-Document Manuscript Diff</h3>
+        <p data-i18n="c2d">Compare two full rendered documents side by side with word/sentence/paragraph badges — up to 40,000 text blocks.</p>
+      </article>
+      <article class="card">
+        <h3 data-i18n="c3t">Local Diff &amp; Review Notes</h3>
+        <p data-i18n="c3d">Unified or side-by-side UTF-8 diff with per-hunk checkmarks and local review comments for exact file versions.</p>
+      </article>
+      <article class="card">
+        <h3 data-i18n="c4t">Search All Loaded Files</h3>
+        <p data-i18n="c4d">Find in the current document (⌘F) or search filenames and contents across all open files (⇧⌘F).</p>
+      </article>
+      <article class="card">
+        <h3 data-i18n="c5t">A4 PDF &amp; Batch Export</h3>
+        <p data-i18n="c5d">Export a single file or reorder multiple open files into separate PDFs or one merged A4 document.</p>
+      </article>
+      <article class="card">
+        <h3 data-i18n="c6t">100% Private &amp; Bilingual</h3>
+        <p data-i18n="c6d">Read-only, DOMPurify-sanitized, relative images scoped to each folder, and instant DE / EN UI switching.</p>
+      </article>
+    </section>
+
+    <div class="note" data-i18n="gatekeeper">
+      <strong>First launch on macOS:</strong> This free open-source build is ad-hoc signed rather than notarized with a paid Apple Developer ID. Right-click <code>MD Preview.app</code> → <strong>Open</strong> on first launch, or run <code>xattr -cr "/Applications/MD Preview.app"</code>.
+    </div>
+  </main>
+
+  <footer>
+    <span>MD Preview · Open Source (ISC License)</span>
+    <span><a href="https://github.com/SimHub/MD-Markdown-Preview">GitHub</a> · <a href="https://github.com/SimHub/MD-Markdown-Preview/releases">Releases</a></span>
+  </footer>
+
+  <script>
+    const copy = {
+      en: {
+        pill: 'Native Swift / AppKit · macOS 12+ · Zero Electron',
+        h1: 'Calm Markdown reading, manuscript diff & batch PDF.',
+        sub: 'A lightweight, 100% local Markdown & plain-text reader for macOS. No bundled browser, no server, no telemetry.',
+        dl: '⬇ Download for macOS (.dmg)',
+        gh: 'View on GitHub',
+        c1t: 'Calm Reading & Live Reload',
+        c1d: 'Read, Split, and Source views with table of contents, focus mode, GFM alerts, task lists, and instant reload on save.',
+        c2t: 'Two-Document Manuscript Diff',
+        c2d: 'Compare two full rendered documents side by side with word/sentence/paragraph badges — up to 40,000 text blocks.',
+        c3t: 'Local Diff & Review Notes',
+        c3d: 'Unified or side-by-side UTF-8 diff with per-hunk checkmarks and local review comments for exact file versions.',
+        c4t: 'Search All Loaded Files',
+        c4d: 'Find in the current document (⌘F) or search filenames and contents across all open files (⇧⌘F).',
+        c5t: 'A4 PDF & Batch Export',
+        c5d: 'Export a single file or reorder multiple open files into separate PDFs or one merged A4 document.',
+        c6t: '100% Private & Bilingual',
+        c6d: 'Read-only, DOMPurify-sanitized, relative images scoped to each folder, and instant DE / EN UI switching.',
+        gatekeeper: '<strong>First launch on macOS:</strong> This free open-source build is ad-hoc signed rather than notarized with a paid Apple Developer ID. Right-click <code>MD Preview.app</code> → <strong>Open</strong> on first launch, or run <code>xattr -cr "/Applications/MD Preview.app"</code>.'
+      },
+      de: {
+        pill: 'Natives Swift / AppKit · macOS 12+ · Kein Electron',
+        h1: 'Ruhiges Markdown-Lesen, Manuskript-Vergleich & Batch-PDF.',
+        sub: 'Ein leichtgewichtiger, 100 % lokaler Markdown- & Text-Reader für macOS. Ohne mitgelieferten Browser, Server oder Telemetrie.',
+        dl: '⬇ Für macOS laden (.dmg)',
+        gh: 'Auf GitHub ansehen',
+        c1t: 'Ruhig lesen & Live-Reload',
+        c1d: 'Lese-, geteilte und Quelltext-Ansicht mit Inhaltsverzeichnis, Fokusmodus, GFM-Alerts, Task-Listen und Auto-Reload.',
+        c2t: 'Zwei-Dateien-Manuskriptvergleich',
+        c2d: 'Zwei vollständige Dokumente nebeneinander mit Wort-/Satz-/Absatz-Badges vergleichen — bis zu 40.000 Textblöcke.',
+        c3t: 'Lokales Diff & Review-Notizen',
+        c3d: 'Untereinander oder nebeneinander mit Geprüft-Haken und lokalen Review-Kommentaren pro Dateiversion.',
+        c4t: 'Suche über alle geladenen Dateien',
+        c4d: 'Im Dokument suchen (⌘F) oder Dateinamen und Inhalte aller geöffneten Dateien durchsuchen (⇧⌘F).',
+        c5t: 'A4-PDF & Mehrdatei-Export',
+        c5d: 'Einzelne Dateien exportieren oder mehrere geöffnete Dateien sortiert als Einzel-PDFs bzw. eine Gesamt-PDF sichern.',
+        c6t: '100 % Privat & Zweisprachig',
+        c6d: 'Schreibgeschützt, mit DOMPurify bereinigt, lokale Bilder auf den Dokumentordner begrenzt, DE / EN direkt umschaltbar.',
+        gatekeeper: '<strong>Erster Start unter macOS:</strong> Dieser kostenlose Open-Source-Build ist lokal ad-hoc signiert (nicht über eine kostenpflichtige Apple Developer ID notarisiert). Beim ersten Start Rechtsklick auf <code>MD Preview.app</code> → <strong>Öffnen</strong> oder <code>xattr -cr "/Applications/MD Preview.app"</code>.'
+      }
+    };
+    let lang = 'en';
+    const langBtn = document.getElementById('lang-btn');
+    const themeBtn = document.getElementById('theme-btn');
+    if (matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.dataset.theme = 'dark';
+    themeBtn.onclick = () => {
+      document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    };
+    langBtn.onclick = () => {
+      lang = lang === 'en' ? 'de' : 'en';
+      langBtn.textContent = lang === 'en' ? 'DE' : 'EN';
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (key === 'gatekeeper') el.innerHTML = copy[lang][key];
+        else el.textContent = copy[lang][key];
+      });
+    };
+  </script>
+</body>
+</html>

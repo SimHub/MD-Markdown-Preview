@@ -1,6 +1,6 @@
 # MD Preview
 
-**English** · [Deutsch](README.de.md)
+**English** · [Deutsch](README.de.md) · [Website](https://simhub.github.io/MD-Markdown-Preview/) · [Download macOS (.dmg)](https://github.com/SimHub/MD-Markdown-Preview/releases/latest)
 
 ![macOS 12+](https://img.shields.io/badge/macOS-12%2B-000000?logo=apple)
 ![Swift + AppKit](https://img.shields.io/badge/Native-Swift%20%2F%20AppKit-F05138?logo=swift&logoColor=white)
@@ -10,6 +10,18 @@
 A fast, native macOS Markdown & plain-text reader built with **Swift/AppKit** and the system `WKWebView` — **zero Electron, zero bundled browser engine, zero telemetry**.
 
 Visually inspired by calm, distraction-free reading, **MD Preview** goes far beyond a single-file viewer: compare full manuscripts side by side, review local diffs with notes, search across all loaded documents, and export ordered multi-file A4 PDFs.
+
+---
+
+## Why MD Preview vs. Electron Apps?
+
+| | MD Preview | Typical Electron Viewers |
+| --- | --- | --- |
+| **Runtime** | Native Swift/AppKit + system `WKWebView` | Bundled Chromium + Node.js (~150–300 MB) |
+| **Manuscript Diff** | Side-by-side rendered diff (up to 40k blocks) | Usually not included |
+| **Local Diff & Review** | Unified/split diff with persistent local notes | Usually requires Git / external IDE |
+| **Batch PDF Export** | Ordered multi-file A4 PDF merge & split | Single-file print only |
+| **Privacy** | 100% local, zero accounts, zero telemetry | Varies |
 
 ---
 

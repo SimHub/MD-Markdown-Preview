@@ -31,8 +31,13 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Package zip
+      - name: Package DMG and ZIP
         run: |
+          mkdir -p dmg-stage
+          cp -R "dist/MD Preview.app" dmg-stage/
+          ln -s /Applications dmg-stage/Applications
+          hdiutil create -volname "MD Preview" -srcfolder dmg-stage -ov -format UDZO "dist/MD-Preview-macOS.dmg"
+          rm -rf dmg-stage
           cd dist
           ditto -c -k --sequesterRsrc --keepParent "MD Preview.app" "MD-Preview-macOS.zip"
 
@@ -40,5 +45,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/MD-Preview-macOS.zip
+          files: |
+            dist/MD-Preview-macOS.dmg
+            dist/MD-Preview-macOS.zip
           generate_release_notes: true
