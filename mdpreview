@@ -1,0 +1,8 @@
+#!/bin/zsh
+set -eu
+ROOT="${0:A:h}"
+if [[ $# -gt 0 ]]; then
+  open -a "$ROOT/dist/MD Preview.app" "${@:A}"
+else
+  open "$ROOT/dist/MD Preview.app"
+fi

@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "MD Preview: Aktuelle Datei",
+      "type": "process",
+      "command": "/usr/bin/open",
+      "args": [
+        "-g",
+        "-a",
+        "/path/to/MD-Markdown-Preview/dist/MD Preview.app",
+        "--",
+        "${file}"
+      ],
+      "problemMatcher": [],
+      "presentation": { "reveal": "never", "focus": false, "panel": "dedicated" }
+    }
+  ]
+}
